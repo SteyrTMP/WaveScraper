@@ -130,17 +130,17 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 func DownloadFile(filepath string, targetUrl url.URL) error {
 
     // Create the file
-	fmt.Println("Download function called on filepath ",filepath," with url ",targetUrl)
+	//fmt.Println("Download function called on filepath ",filepath," with url ",targetUrl)
    	rootDirRegexp := regexp.MustCompile(`/[^/]*$`)
 	rootDir := rootDirRegexp.ReplaceAllString(filepath, "")
-	fmt.Println("making root dir ",rootDir)
+	//fmt.Println("making root dir ",rootDir)
 	err := os.MkdirAll(rootDir, os.ModePerm)
 	if err != nil {
 		fmt.Println("error")
     	fmt.Println(err)
         return err
     }
-	fmt.Println("making file ",filepath)
+	//fmt.Println("making file ",filepath)
     out, err := os.Create(filepath)
     if err != nil {
     	fmt.Println("error")
@@ -150,19 +150,21 @@ func DownloadFile(filepath string, targetUrl url.URL) error {
     defer out.Close()
 
     // Get the data
-    fmt.Println("Getting data from ",targetUrl.String)
+    //fmt.Println("Getting data from ",targetUrl.String)
     resp, err := http.Get(targetUrl.String())
     if err != nil {
     	fmt.Println("error")
+    	fmt.Println(err)
         return err
     }
     defer resp.Body.Close()
 
     // Write the body to file
-    fmt.Println("Writing data to file...")
+    //fmt.Println("Writing data to file...")
     _, err = io.Copy(out, resp.Body)
     if err != nil {
     	fmt.Println("error")
+    	fmt.Println(err)
         return err
     }
 
