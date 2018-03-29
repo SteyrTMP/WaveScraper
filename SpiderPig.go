@@ -111,7 +111,7 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 						//fmt.Println("URL=",attribute.Val)
 						removeHashThingy := regexp.MustCompile(`#[^#]*$`)
 						urlWithoutHashThingy := removeHashThingy.ReplaceAllString(attribute.Val, "")
-						removeQThingy := regexp.MustCompile(`\?[^\?]*$`)
+						removeQThingy := regexp.MustCompile(`\?[.]*$`)
 						urlWithoutQThingy := removeQThingy.ReplaceAllString(urlWithoutHashThingy, "")
 						u, err := targetUrl.Parse(urlWithoutQThingy)
 
