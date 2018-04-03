@@ -19,10 +19,7 @@ func main(){
 	flag.BoolVar(&verbose, "verbose",false,"Verbose Mode")
 	flag.BoolVar(&verbose, "v",false, "Verbose Mode (shorthand)")
 	flag.BoolVar(&list, "list",false,"List Mode (Do not download files)")
-	flag.BoolVar(&list, "l",false, "List Mode (shorthand)")
-	flag.BoolVar(&help, "help",false,"Display Help")
-	flag.BoolVar(&help, "h",false, "Display Help (shorthand)")
-	
+	flag.BoolVar(&list, "l",false, "List Mode (shorthand)")	
 	flag.StringVar(&downloadLocation,"download", "./", "Dowload Location")
 	flag.StringVar(&downloadLocation,"d", "./", "Dowload Location (shorthand)")
 	flag.StringVar(&fileType,"fileType", "wav", "File Type")
@@ -31,11 +28,6 @@ func main(){
 	flag.Parse()
 
 	mimeType := mime.TypeByExtension(fileType)
-
-	if (help) {
-		fmt.Println("No help for you!")
-		return
-	}
 
 	var downloadURL string
 
