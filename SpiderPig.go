@@ -60,6 +60,10 @@ func main(){
 
 	s,_ := url.Parse(downloadURL)
 
+	baseDirRegexp := regexp.MustCompile(`/[^/]*$`)
+	baseDir := (baseDirRegexp.ReplaceAllString(s.EscapedPath(), "/"))
+
+
 	seedUrl := *s
 	var newUrls, oldUrls []url.URL
 	newUrls = append(newUrls, seedUrl)
@@ -78,7 +82,7 @@ func main(){
 			if (verbose) {
 			fmt.Println(itm.String())
 			}
-			if !(strings.Contains(itm.EscapedPath(),s.EscapedPath())) || (itm.Hostname() != currentUrl.Hostname()) { //Validate inside domain
+			if !(strings.Contains(itm.EscapedPath(),baseDir)) || (itm.Hostname() != currentUrl.Hostname()) { //Validate inside domain
 				if (verbose) {
 					fmt.Println("Link ",itm," is outside of the domain")
 				}
