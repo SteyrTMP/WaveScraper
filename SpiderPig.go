@@ -26,7 +26,7 @@ func main(){
 	flag.StringVar(&downloadLocation,"download", "./", "Dowload Location")
 	flag.StringVar(&downloadLocation,"d", "./", "Dowload Location (shorthand)")
 	flag.StringVar(&fileType,"fileType", "wav", "File Type")
-	flag.StringVar(&fileType,"f", "wav", "File Type (shorthand)")
+	flag.StringVar(&fileType,"f", ".wav", "File Type (shorthand)")
 
 	flag.Parse()
 
@@ -106,8 +106,6 @@ func main(){
 			case "":
 				//fmt.Println("Link ",itm," does not have a content type tag. Adding to queue anyway.")
 				newUrls = append(newUrls,itm)
-			case "audio/x-wav":	
-				
 			case "text/html":
 				if (verbose) {
 					fmt.Println("Link ",in," is a new html file, adding ",itm.String()," to queue")
@@ -215,13 +213,13 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 
 func DownloadFile(filepath string, targetUrl url.URL) error {
 
+   	filepath = downloadLocation + filepath
     // Create the file
 	if (verbose) {
 		fmt.Println("Download function called on filepath ",filepath," with url ",targetUrl)
 	}
    	rootDirRegexp := regexp.MustCompile(`/[^/]*$`)
-   	downloadLocRegexp := regexp.MustCompile(`/$`)
-	rootDir := (downloadLocRegexp.ReplaceAllString(downloadLocation,""))+(rootDirRegexp.ReplaceAllString(filepath, ""))
+	rootDir := (rootDirRegexp.ReplaceAllString(filepath, ""))
 	if (verbose) {
 		fmt.Println("making root dir ",rootDir)
 	}
