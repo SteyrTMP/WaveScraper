@@ -9,10 +9,49 @@ import (
 	"golang.org/x/net/html"
 	"regexp"
 	"os"
+	"mime"
+	"flag"
 )
+var verbose, list, help bool
+var downloadLocation, fileType string
 
 func main(){
-	s,_ := url.Parse("http://www.thanatosrealms.com")
+	flag.BoolVar(&verbose, "verbose",false,"Verbose Mode")
+	flag.BoolVar(&verbose, "v",false, "Verbose Mode (shorthand)")
+	flag.BoolVar(&list, "list",false,"List Mode (Do not download files)")
+	flag.BoolVar(&list, "l",false, "List Mode (shorthand)")
+	flag.BoolVar(&help, "help",false,"Display Help")
+	flag.BoolVar(&help, "h",false, "Display Help (shorthand)")
+	
+	flag.StringVar(&downloadLocation,"download", "./", "Dowload Location")
+	flag.StringVar(&downloadLocation,"d", "./", "Dowload Location (shorthand)")
+	flag.StringVar(&fileType,"fileType", "wav", "File Type")
+	flag.StringVar(&fileType,"f", "wav", "File Type (shorthand)")
+
+	flag.Parse()
+
+	mimeType := mime.TypeByExtension(fileType)
+
+	if (help) {
+		fmt.Println("No help for you!")
+		return
+	}
+
+	var downloadURL string
+
+	if len(flag.Args()) == 0 {
+		fmt.Println("Please specify a URL as an argument.")
+		return
+	}
+
+	downloadURL = flag.Args()[0]
+	isgood,_ := regexp.MatchString(`^(?i)(http)://`, downloadURL)
+	if !isgood {
+		downloadURL = "http://"+downloadURL
+	}
+
+	s,_ := url.Parse(downloadURL)
+
 	seedUrl := *s
 	var newUrls, oldUrls []url.URL
 	newUrls = append(newUrls, seedUrl)
@@ -20,25 +59,39 @@ func main(){
 	for len(newUrls) > 0 {
 		var currentUrl url.URL
 		currentUrl, newUrls = newUrls[0], newUrls[1:]	//Pop the first entry in the list of URL's to visit
-		fmt.Println("Scraping page: ", currentUrl.String())
+		if (verbose) {
+			fmt.Println("Scraping page: ", currentUrl.String())
+		}
 		pageLinks := ScrapeLinks(currentUrl)	//Get all the URL's on target page
-		//fmt.Println("Found ",len(pageLinks), " links, processing...")
-		for _,itm := range pageLinks {
-			//fmt.Println(itm.String())
+		if (verbose) {
+			fmt.Println("Found ",len(pageLinks), " links, processing...")
+		}
+		for in,itm := range pageLinks {
+			if (verbose) {
+			fmt.Println(itm.String())
+			}
 			if itm.Hostname() != currentUrl.Hostname(){	//Validate inside domain
-				//fmt.Println("Link ",itm," is outside of the domain")
+				if (verbose) {
+					fmt.Println("Link ",itm," is outside of the domain")
+				}
 				continue
 			}
 			if findUrl(itm, oldUrls) {	//validate not processed
-				//fmt.Println("Link ",in," is already seen")
+				if (verbose) {
+					fmt.Println("Link ",in," is already seen")
+				}
 				continue
 			}
 			if findUrl(itm, newUrls) {	//validate not already queued
-				//fmt.Println("Link ",in," is already queued")
+				if (verbose) {
+					fmt.Println("Link ",in," is already queued")
+				}
 				continue
 			}
 			if !((itm.Scheme == "http") || (itm.Scheme == "https")) {	//validate not some javascript bullshit
-				//fmt.Println("Link ",itm," is not an http link")
+				if (verbose) {
+					fmt.Println("Link ",itm," is not an http link")
+				}
 				continue
 			}
 			res, _ := http.Head(itm.String())	//probe for header
@@ -54,23 +107,43 @@ func main(){
 				//fmt.Println("Link ",itm," does not have a content type tag. Adding to queue anyway.")
 				newUrls = append(newUrls,itm)
 			case "audio/x-wav":	
-				fmt.Println("Link ",itm.String()," is an audio file, downloading...")
-				DownloadFile(itm.EscapedPath()[1:],itm)	//download if wav
-				//fmt.Println("Download complete")
+				
 			case "text/html":
-				//fmt.Println("Link ",in," is a new html file, adding ",itm.String()," to queue")
+				if (verbose) {
+					fmt.Println("Link ",in," is a new html file, adding ",itm.String()," to queue")
+				}
 				newUrls = append(newUrls, itm) //add to queue if valid html
 			default:
-				//fmt.Println("Link ",itm," is a file of type ",res.Header.Get("Content-Type"),", ignoring")
+				if (verbose) {
+					fmt.Println("Link ",itm," is a file of type ",res.Header.Get("Content-Type"))
+				}
+			if ctype == mimeType{
+				if !(list){
+					if (verbose) {
+						fmt.Println("Link ",itm.String()," is a ",fileType," file, downloading...")
+					}
+					DownloadFile(itm.EscapedPath()[1:],itm)	//download if wav
+					if (verbose) {
+						fmt.Println("Download complete")
+					}
+				}
+				if (list) {
+					fmt.Println(itm.String())
+				}
+			}
 			}
 		}
-		//fmt.Println("done.\n")
-		oldUrls = append(oldUrls, currentUrl)
-		/*fmt.Println("URL's to explore: ")
-		for in,itm := range newUrls {
-			fmt.Println(in,": ",itm.String())
+		if (verbose) {
+			fmt.Println("done.\n")
 		}
-		*/
+		oldUrls = append(oldUrls, currentUrl)
+		if (verbose) {
+			fmt.Println("URL's to explore: ")
+			for in,itm := range newUrls {
+				fmt.Println(in,": ",itm.String())
+			}
+			
+		}
 
 	}
 
@@ -99,13 +172,17 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 
 	switch {
 	case tokenType == html.ErrorToken:
-		//fmt.Println("End of file")
+		if (verbose) {
+			fmt.Println("End of file")
+		}
 		return output
 
 	case tokenType == html.StartTagToken:
 		currentToken := tokenized.Token()
 		if (currentToken.Data == "a") {
-			//fmt.Println("Link Found")
+			if (verbose) {
+			fmt.Println("Link Found")
+			}
 				for _, attribute := range currentToken.Attr {
 					if attribute.Key == "href" {
 						//fmt.Println("URL=",attribute.Val)
@@ -139,17 +216,24 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 func DownloadFile(filepath string, targetUrl url.URL) error {
 
     // Create the file
-	//fmt.Println("Download function called on filepath ",filepath," with url ",targetUrl)
+	if (verbose) {
+		fmt.Println("Download function called on filepath ",filepath," with url ",targetUrl)
+	}
    	rootDirRegexp := regexp.MustCompile(`/[^/]*$`)
-	rootDir := rootDirRegexp.ReplaceAllString(filepath, "")
-	//fmt.Println("making root dir ",rootDir)
+   	downloadLocRegexp := regexp.MustCompile(`/$`)
+	rootDir := (downloadLocRegexp.ReplaceAllString(downloadLocation,""))+(rootDirRegexp.ReplaceAllString(filepath, ""))
+	if (verbose) {
+		fmt.Println("making root dir ",rootDir)
+	}
 	err := os.MkdirAll(rootDir, os.ModePerm)
 	if err != nil {
 		fmt.Println("error")
     	fmt.Println(err)
         return err
     }
-	//fmt.Println("making file ",filepath)
+    if (verbose) {
+		fmt.Println("making file ",filepath)
+	}
     out, err := os.Create(filepath)
     if err != nil {
     	fmt.Println("error")
@@ -157,9 +241,10 @@ func DownloadFile(filepath string, targetUrl url.URL) error {
         return err
     }
     defer out.Close()
-
+    if (verbose) {
+		fmt.Println("Getting data from ",targetUrl.String())
+	}
     // Get the data
-    //fmt.Println("Getting data from ",targetUrl.String())
     resp, err := http.Get(targetUrl.String())
     if err != nil {
     	fmt.Println("error")
@@ -169,7 +254,9 @@ func DownloadFile(filepath string, targetUrl url.URL) error {
     defer resp.Body.Close()
 
     // Write the body to file
-    //fmt.Println("Writing data to file...")
+    if (verbose) {
+		fmt.Println("Writing data to file...")
+	}
     _, err = io.Copy(out, resp.Body)
     if err != nil {
     	fmt.Println("error")
