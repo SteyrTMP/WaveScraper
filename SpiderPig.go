@@ -25,7 +25,7 @@ func main(){
 	
 	flag.StringVar(&downloadLocation,"download", "./", "Dowload Location")
 	flag.StringVar(&downloadLocation,"d", "./", "Dowload Location (shorthand)")
-	flag.StringVar(&fileType,"fileType", "wav", "File Type")
+	flag.StringVar(&fileType,"fileType", ".wav", "File Type")
 	flag.StringVar(&fileType,"f", ".wav", "File Type (shorthand)")
 
 	flag.Parse()
@@ -188,29 +188,27 @@ func ScrapeLinks(targetUrl url.URL) []url.URL {		//Gets all the links on a page,
 			if (verbose) {
 			fmt.Println("Link Found")
 			}
-				for _, attribute := range currentToken.Attr {
-					if attribute.Key == "href" {
-						//fmt.Println("URL=",attribute.Val)
-						removeHashThingy := regexp.MustCompile(`#[^#]*$`)
-						urlWithoutHashThingy := removeHashThingy.ReplaceAllString(attribute.Val, "")
-						removeQThingy := regexp.MustCompile(`\?[.]*$`)
-						urlWithoutQThingy := removeQThingy.ReplaceAllString(urlWithoutHashThingy, "")
-						u, err := targetUrl.Parse(urlWithoutQThingy)
-
-						if err != nil{
-							log.Fatal(err)
-						}
-						if u.Hostname() == ""{
-							u.Host = targetUrl.Hostname()
-						}
-						if u.Scheme == ""{
-							u.Scheme = "http"
-						}
-						output = append(output, *u)
-						}
-
+			for _, attribute := range currentToken.Attr {
+				if attribute.Key == "href" {
+					//fmt.Println("URL=",attribute.Val)
+					removeHashThingy := regexp.MustCompile(`#[^#]*$`)
+					urlWithoutHashThingy := removeHashThingy.ReplaceAllString(attribute.Val, "")
+					removeQThingy := regexp.MustCompile(`\?[.]*$`)
+					urlWithoutQThingy := removeQThingy.ReplaceAllString(urlWithoutHashThingy, "")
+					u, err := targetUrl.Parse(urlWithoutQThingy)
+					if err != nil{
+						log.Fatal(err)
+					}
+					if u.Hostname() == ""{
+						u.Host = targetUrl.Hostname()
+					}
+					if u.Scheme == ""{
+						u.Scheme = "http"
+					}
+					output = append(output, *u)
 					}
 				}
+			}
 		}
 	}
 
