@@ -19,7 +19,10 @@ func main(){
 	flag.BoolVar(&verbose, "verbose",false,"Verbose Mode")
 	flag.BoolVar(&verbose, "v",false, "Verbose Mode (shorthand)")
 	flag.BoolVar(&list, "list",false,"List Mode (Do not download files)")
-	flag.BoolVar(&list, "l",false, "List Mode (shorthand)")	
+	flag.BoolVar(&list, "l",false, "List Mode (shorthand)")
+	flag.BoolVar(&help, "help",false,"Display Help")
+	flag.BoolVar(&help, "h",false, "Display Help (shorthand)")
+	
 	flag.StringVar(&downloadLocation,"download", "./", "Dowload Location")
 	flag.StringVar(&downloadLocation,"d", "./", "Dowload Location (shorthand)")
 	flag.StringVar(&fileType,"fileType", "wav", "File Type")
@@ -28,6 +31,18 @@ func main(){
 	flag.Parse()
 
 	mimeType := mime.TypeByExtension(fileType)
+
+	if (help) {
+		fmt.Println("================================================")
+		fmt.Println("============= S P I D E R - P I G ==============")
+		fmt.Println("================================================")
+		fmt.Println("SpiderPig scrapes stuff, pretty self explanatory")
+		fmt.Println("")
+		fmt.Println("Usage:")
+		fmt.Println("")
+		flag.PrintDefaults()
+		return
+	}
 
 	var downloadURL string
 
